@@ -1,0 +1,14 @@
+{
+  "extends": [
+    "airbnb",
+    "wikimedia"
+  ],
+  "env": {
+    "jest": true
+  },
+  "rules": {
+    "one-var": ["off"],
+		"react/jsx-filename-extension": ["off"],
+		"react/jsx-indent": ["error", "tab"]
+  }
+}
