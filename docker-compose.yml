@@ -3,6 +3,7 @@ services:
   ingress:
     image: nginx:1.14
     volumes:
+      - ./etc/nginx/default.conf:/etc/nginx/conf.d/default.conf:cached
       - ./html:/usr/share/nginx/html:cached
     ports:
       - 8888:80

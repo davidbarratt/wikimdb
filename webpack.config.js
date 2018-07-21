@@ -11,7 +11,8 @@ module.exports = ( env, argv ) => {
 		entry: './index.js',
 		output: {
 			filename: 'scripts/[name].js',
-			path: path.resolve( __dirname, 'html' )
+			path: path.resolve( __dirname, 'html' ),
+			publicPath: '/'
 		},
 		devtool: argv.mode === 'production' ? 'source-map' : 'cheap-module-source-map',
 		resolve: {
@@ -76,7 +77,8 @@ module.exports = ( env, argv ) => {
 		plugins: [
 			new MiniCssExtractPlugin( {
 				filename: 'styles/[name].css',
-				disable: argv.mode !== 'production'
+				disable: argv.mode !== 'production',
+				publicPath: '/'
 			} ),
 			// new FaviconsWebpackPlugin( path.resolve( './images/logo.png' ) ),
 			new CleanWebpackPlugin( [ '../html' ], {

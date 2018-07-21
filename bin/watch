@@ -1,2 +1,2 @@
 #!/bin/sh
-npm install && npm run watch --mode=development
+npm install && npm run watch
