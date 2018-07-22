@@ -1,4 +1,7 @@
+// @TODO find a better library than bluebird.
 import { any } from 'bluebird';
+
+// @TODO add an install listenerer to cache the html/js/css.
 
 self.addEventListener( 'fetch', ( event ) => {
 
@@ -12,6 +15,8 @@ self.addEventListener( 'fetch', ( event ) => {
 		return;
 	}
 
+	// @TODO perhaps cache the images differently? should they be re-requested
+	//       each time or only occassionally?
 	event.respondWith(
 		// Respond to whichever has the fastest fullfillment. Only fail if both fail.
 		any( [
@@ -50,7 +55,7 @@ self.addEventListener( 'fetch', ( event ) => {
 	);
 } );
 
-// Clear the cache!
+// Clear the cache! when does this execute? how can we control this?
 self.addEventListener( 'activate', ( event ) => {
 	event.waitUntil(
 		caches.keys().then( ( cacheNames ) => {
