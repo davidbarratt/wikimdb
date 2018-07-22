@@ -4,7 +4,7 @@ import { GraphQLClient } from 'graphql-request';
 import md5 from 'crypto-js/md5';
 import moment from 'moment';
 
-const client = new GraphQLClient( 'http://127.0.0.1:8080/wdql.php' );
+const client = new GraphQLClient( 'https://tools.wmflabs.org/tptools/wdql.php' );
 
 const query = `
 query getItem($id: ID!) {
@@ -12,61 +12,46 @@ query getItem($id: ID!) {
     label(language: "en") {
       text
     }
+    logos: statements(propertyIds: "P154", best: true) {
+      ...StatementItemValue
+    }
     images: statements(propertyIds: "P18", best: true) {
-      data: mainsnak {
-        ... on PropertyValueSnak {
-          item: value {
-            ... on StringValue {
-              value
-            }
-          }
-        }
-      }
+      ...StatementItemValue
     }
     publication: statements(propertyIds: "P577", best: true) {
-      data: mainsnak {
-        ... on PropertyValueSnak {
-          item: value {
-            ... on TimeValue {
-              value: time
-            }
-          }
-        }
-      }
+      ...StatementItemValue
     }
     duration: statements(propertyIds: "P2047", best: true) {
-      data: mainsnak {
-        ... on PropertyValueSnak {
-          item: value {
-            ... on QuantityValue {
-              value: amount
-            }
-          }
-        }
-      }
+      ...StatementItemValue
     }
     mpaa: statements(propertyIds: "P1657", best: true) {
-      data: mainsnak {
-        ... on PropertyValueSnak {
-          item: value {
-            ... on Item {
-              label(language: "en") {
-                text
-              }
-            }
-          }
-        }
-      }
+      ...StatementItemValue
     }
     genres: statements(propertyIds: "P136", best: true) {
-      data: mainsnak {
-        ... on PropertyValueSnak {
-          item: value {
-            ... on Item {
-              label(language: "en") {
-                text
-              }
-            }
+      ...StatementItemValue
+    }
+  }
+}
+
+fragment StatementItemValue on Statement {
+  data: mainsnak {
+    ... on PropertyValueSnak {
+      item: value {
+        ... on StringValue {
+          value
+        }
+        ... on QuantityValue {
+          value: amount
+        }
+        ... on TimeValue {
+          value: time
+        }
+        ... on StringValue {
+          value
+        }
+        ... on Item {
+          label(language: "en") {
+            text
           }
         }
       }
@@ -75,14 +60,24 @@ query getItem($id: ID!) {
 }
 `;
 
+const getAllItems = ( data, name ) => {
+	if ( data.item[ name ] && data.item[ name ].length ) {
+		return data.item[ name ].reduce( ( prev, curr ) => {
+			return [
+				...prev,
+				curr.data.item
+			]
+		}, []);
+	}
+
+	return [];
+};
+
 const getFirstItem = ( data, name ) => {
-	if (
-		data.item[ name ] &&
-		data.item[ name ].length &&
-		data.item[ name ][ 0 ].data &&
-		data.item[ name ][ 0 ].data.item
-	) {
-		return data.item[ name ][ 0 ].data.item;
+	const items = getAllItems( data, name );
+
+	if ( items[ 0 ] ) {
+		return items[ 0 ];
 	}
 
 	return undefined;
@@ -115,15 +110,23 @@ class Item extends React.Component {
 		let image;
 		let hash;
 		let filename;
+		let year;
 		let publication;
+		let release;
+		let meta = [];
 		let mpaa;
+		let duration;
+		let genres;
 		if ( data && data.item ) {
 
 			if ( data.item.label && data.item.label.text ) {
 				title = data.item.label.text;
 			}
 
-			image = getFirstItem( data, 'images' );
+			image = getFirstItem( data, 'logos' );
+			if ( !image ) {
+				image = getFirstItem( data, 'images' );
+			}
 			if ( image ) {
 				filename = image.value.replace( / /g, '_' );
 				hash = md5( filename ).toString();
@@ -132,27 +135,41 @@ class Item extends React.Component {
 
 			publication = getFirstItem( data, 'publication' );
 			if ( publication ) {
-				publication = moment.utc( publication.value.substring( 1 ), moment.ISO_8601 ).format( 'YYYY' );
-				publication = `(${publication})`;
+				publication = moment.utc( publication.value.substring( 1 ), moment.ISO_8601 );
+				year = publication.format( 'YYYY' );
+				year = `(${year})`;
+				release = publication.format( 'LL' );
 			}
 
 			mpaa = getFirstItem( data, 'mpaa' );
 			if ( mpaa ) {
 				mpaa = mpaa.label.text;
 			}
+
+			duration = getFirstItem( data, 'duration' );
+			if ( duration ) {
+				duration = moment.duration( parseInt( duration.value ), 'minutes' );
+				if ( duration.hours() ) {
+					duration = `${duration.hours()}h ${duration.minutes()}min`;
+				} else {
+					duration = `${duration.minutes}min`;
+				}
+			}
+
+			genres = getAllItems( data, 'genres' ).map( g => g.label.text.replace( /^film | film$/, '' ) ).join( ', ' );
 		}
+
+		meta = [ mpaa, duration, genres, release ].filter( i => !!i ).join( ' | ' );
 
 		return (
 			<div>
 				<div className="row">
-					<div className="col">
-						<h4>{title} {publication}</h4>
-						<h5>{mpaa}</h5>
-					</div>
-				</div>
-				<div className="row">
-					<div className="col-4">
+					<div className="col-3">
 						<img src={image} alt={title} className="img-fluid" />
+					</div>
+					<div className="col-9">
+						<h5>{title} {year}</h5>
+						<h6>{meta}</h6>
 					</div>
 				</div>
 			</div>
