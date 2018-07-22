@@ -8,9 +8,12 @@ const ScriptExtHtmlWebpackPlugin = require( 'script-ext-html-webpack-plugin' );
 
 module.exports = ( env, argv ) => {
 	const config = {
-		entry: './index.js',
+		entry: {
+			main: './index.js',
+			sw: './sw.js'
+		},
 		output: {
-			filename: 'scripts/[name].js',
+			filename: '[name].js',
 			path: path.resolve( __dirname, 'html' ),
 			publicPath: '/'
 		},

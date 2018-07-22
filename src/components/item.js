@@ -1,10 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { GraphQLClient } from 'graphql-request';
+import qs from 'querystring';
 import md5 from 'crypto-js/md5';
 import moment from 'moment';
 
-const client = new GraphQLClient( 'https://tools.wmflabs.org/tptools/wdql.php' );
+const endpoint = 'https://tools.wmflabs.org/tptools/wdql.php';
 
 const query = `
 query getItem($id: ID!) {
@@ -62,12 +62,12 @@ fragment StatementItemValue on Statement {
 
 const getAllItems = ( data, name ) => {
 	if ( data.item[ name ] && data.item[ name ].length ) {
-		return data.item[ name ].reduce( ( prev, curr ) => {
-			return [
+		return data.item[ name ].reduce( ( prev, curr ) => (
+			[
 				...prev,
 				curr.data.item
 			]
-		}, []);
+		), [] );
 	}
 
 	return [];
@@ -95,11 +95,16 @@ class Item extends React.Component {
 
 	componentDidMount() {
 		const { match } = this.props;
+		const url = endpoint + '?' + qs.stringify( {
+			query,
+			variables: JSON.stringify( {
+				id: 'Q' + match.params.id
+			} )
+		} );
 
-		client.request( query, {
-			id: 'Q' + match.params.id
-		} ).then( ( data ) => {
-			this.setState( { data } );
+
+		fetch( url ).then( r => r.json() ).then( ( body ) => {
+			this.setState( { data: body.data } );
 		} );
 	}
 
