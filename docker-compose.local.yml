@@ -1,0 +1,14 @@
+version: '3'
+services:
+  ingress:
+    volumes:
+      - ./html:/usr/share/nginx/html:cached
+    ports:
+      - 8888:80
+  watch:
+    image: node:10
+    working_dir: /code
+    command:
+      - ./bin/watch
+    volumes:
+      - ./:/code:cached
