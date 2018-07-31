@@ -1,5 +1,4 @@
 version: '3'
 services:
-  ingress:
+  web:
     image: davidbarratt/wikimdb
-    build: ./

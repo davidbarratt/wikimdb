@@ -1,6 +1,7 @@
 version: '3'
 services:
-  ingress:
+  web:
+    build: ./
     volumes:
       - ./html:/usr/share/nginx/html:cached
     ports:
