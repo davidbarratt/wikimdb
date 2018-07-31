@@ -1,9 +1,6 @@
 version: '3'
 services:
   web:
-    environment:
-      VIRTUAL_HOST: wikimdb.davidwbarratt.com
-      LETSENCRYPT_HOST: wikimdb.davidwbarratt.com
     networks:
        - default
        - ingress

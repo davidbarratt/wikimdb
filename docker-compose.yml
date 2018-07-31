@@ -2,3 +2,5 @@ version: '3'
 services:
   web:
     image: davidbarratt/wikimdb
+    env_file:
+      - .env
