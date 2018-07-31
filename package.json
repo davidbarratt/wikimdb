@@ -1,9 +1,10 @@
 {
-  "name": "@wikimedia/wikimdb",
+  "name": "@davidbarratt/wikimdb",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
+		"postinstall": "webpack --mode=production",
     "watch": "webpack --watch --mode=development",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
