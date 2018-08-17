@@ -36,7 +36,7 @@ query getItem($id: ID!, $lang: String!) {
     director: statements(propertyIds: "P57", best: true) {
       ...StatementItemValue
     }
-    screenwriter: statements(propertyIds: "P57", best: true) {
+    screenwriter: statements(propertyIds: "P58", best: true) {
       ...StatementItemValue
     }
   }
@@ -190,12 +190,21 @@ const Film = ( { data } ) => {
 		details = [
 			getLabelValues( data, 'director' ),
 			getLabelValues( data, 'screenwriter' )
-		].map( ( { key, label, values } ) => (
-			<React.Fragment key={key}>
-				<dt>{label}</dt>
-				<dd>{values.join( ', ' )}</dd>
-			</React.Fragment>
-		) );
+		].reduce( ( prev, { key, label, values } ) => {
+			if ( !label || !values ) {
+				return prev;
+			}
+
+			return [
+				...prev,
+				(
+					<React.Fragment key={key}>
+						<dt>{label}</dt>
+						<dd>{values.join( ', ' )}</dd>
+					</React.Fragment>
+				)
+			];
+		}, [] );
 
 	}
 
