@@ -4,8 +4,10 @@ WORKDIR /app
 
 ENV NODE_ENV production
 
+EXPOSE 80
+
 COPY ./ /app
 
-RUN npm install --unsafe-perm --production
+RUN npm install --unsafe-perm
 
 CMD ["npm", "start"]

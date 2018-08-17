@@ -85,96 +85,99 @@ const getFirstItem = ( data, name ) => {
 	return undefined;
 };
 
-class Item extends React.Component {
-	static async getInitialProps( { query: { id } } ) {
-		const url = endpoint + '?' + qs.stringify( {
-			query,
-			variables: JSON.stringify( {
-				id: 'Q' + id
-			} )
-		} );
+const Film = ( { data } ) => {
+	let title;
+	let image;
+	let hash;
+	let filename;
+	let year;
+	let publication;
+	let release;
+	let meta = [];
+	let mpaa;
+	let duration;
+	let genres;
 
-		const response = await fetch( url );
+	if ( data && data.item ) {
 
-		return response.json();
-	}
-
-	render() {
-		const { data } = this.props;
-
-		let title;
-		let image;
-		let hash;
-		let filename;
-		let year;
-		let publication;
-		let release;
-		let meta = [];
-		let mpaa;
-		let duration;
-		let genres;
-		if ( data && data.item ) {
-
-			if ( data.item.label && data.item.label.text ) {
-				title = data.item.label.text;
-			}
-
-			image = getFirstItem( data, 'logos' );
-			if ( !image ) {
-				image = getFirstItem( data, 'images' );
-			}
-			if ( image ) {
-				filename = image.value.replace( / /g, '_' );
-				hash = md5( filename ).toString();
-				image = `https://upload.wikimedia.org/wikipedia/commons/${hash.substring( 0, 1 )}/${hash.substring( 0, 2 )}/${encodeURIComponent( filename )}`;
-			}
-
-			publication = getFirstItem( data, 'publication' );
-			if ( publication ) {
-				publication = DateTime.fromISO( publication.value.substring( 1 ) );
-				year = publication.year;
-				year = `(${year})`;
-				release = publication.toLocaleString( { month: 'long', day: 'numeric', year: 'numeric' } );
-			}
-
-			mpaa = getFirstItem( data, 'mpaa' );
-			if ( mpaa ) {
-				mpaa = mpaa.label.text;
-			}
-
-			duration = getFirstItem( data, 'duration' );
-			if ( duration ) {
-				duration = Duration.fromObject( { minutes: parseInt( duration.value ) } );
-				if ( duration.hours ) {
-					duration = `${duration.hours}h ${duration.minutes}min`;
-				} else {
-					duration = `${duration.minutes}min`;
-				}
-			}
-
-			genres = getAllItems( data, 'genres' ).map( g => g.label.text.replace( /^film | film$/, '' ) ).join( ', ' );
+		if ( data.item.label && data.item.label.text ) {
+			title = data.item.label.text;
 		}
 
-		meta = [ mpaa, duration, genres, release ].filter( i => !!i ).join( ' | ' );
+		image = getFirstItem( data, 'logos' );
+		if ( !image ) {
+			image = getFirstItem( data, 'images' );
+		}
+		if ( image ) {
+			filename = image.value.replace( / /g, '_' );
+			hash = md5( filename ).toString();
+			image = `https://upload.wikimedia.org/wikipedia/commons/${hash.substring( 0, 1 )}/${hash.substring( 0, 2 )}/${encodeURIComponent( filename )}`;
+		}
 
-		return (
-			<Layout>
-				<div className="row">
-					<div className="col-3">
-						<img src={image} alt={title} className="img-fluid" />
-					</div>
-					<div className="col-9">
-						<h5>{title} {year}</h5>
-						<h6>{meta}</h6>
-					</div>
-				</div>
-			</Layout>
-		);
+		publication = getFirstItem( data, 'publication' );
+		if ( publication ) {
+			publication = DateTime.fromISO( publication.value.substring( 1 ) );
+			year = publication.year;
+			year = `(${year})`;
+			release = publication.toLocaleString( { month: 'long', day: 'numeric', year: 'numeric' } );
+		}
+
+		mpaa = getFirstItem( data, 'mpaa' );
+		if ( mpaa ) {
+			mpaa = mpaa.label.text;
+		}
+
+		duration = getFirstItem( data, 'duration' );
+		if ( duration ) {
+			duration = Duration.fromObject( { minutes: parseInt( duration.value ) } );
+			if ( duration.hours ) {
+				duration = `${duration.hours}h ${duration.minutes}min`;
+			} else {
+				duration = `${duration.minutes}min`;
+			}
+		}
+
+		genres = getAllItems( data, 'genres' ).map( g => g.label.text.replace( /^film | film$/, '' ) ).join( ', ' );
 	}
-}
 
-Item.propTypes = {
-	data: PropTypes.object.isRequired,
+	meta = [ mpaa, duration, genres, release ].filter( i => !!i ).join( ' | ' );
+
+	return (
+		<Layout>
+			<div className="row">
+				<div className="col-3">
+					<img src={image} alt={title} className="img-fluid" />
+				</div>
+				<div className="col-9">
+					<h5>{title} {year}</h5>
+					<h6>{meta}</h6>
+				</div>
+			</div>
+		</Layout>
+	);
 };
 
-export default Item;
+Film.getInitialProps = async ( { query: { id } } ) => {
+	const url = endpoint + '?' + qs.stringify( {
+		query,
+		variables: JSON.stringify( {
+			id: 'Q' + id
+		} )
+	} );
+
+	const response = await fetch( url );
+
+	return response.json();
+};
+
+Film.propTypes = {
+	data: PropTypes.shape( {
+		item: PropTypes.shape( {
+			label: PropTypes.shape( {
+				text: PropTypes.string
+			} )
+		} )
+	} ).isRequired
+};
+
+export default Film;
