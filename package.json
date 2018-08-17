@@ -2,6 +2,7 @@
   "name": "@davidbarratt/wikimdb",
   "dependencies": {
     "@zeit/next-sass": "^0.2.0",
+    "accept": "^3.0.2",
     "bootstrap": "^4.1.3",
     "crypto-js": "^3.1.9-1",
     "hapi": "^17.5.3",
