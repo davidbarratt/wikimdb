@@ -2,7 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import qs from 'querystring';
 import md5 from 'crypto-js/md5';
-import moment from 'moment';
+import { DateTime, Duration } from 'luxon';
+import fetch from 'isomorphic-unfetch';
+import Layout from '../components/layout';
 
 const endpoint = 'https://tools.wmflabs.org/tptools/wdql.php';
 
@@ -84,32 +86,21 @@ const getFirstItem = ( data, name ) => {
 };
 
 class Item extends React.Component {
-
-	constructor( props ) {
-		super( props );
-
-		this.state = {
-			data: undefined
-		};
-	}
-
-	componentDidMount() {
-		const { match } = this.props;
+	static async getInitialProps( { query: { id } } ) {
 		const url = endpoint + '?' + qs.stringify( {
 			query,
 			variables: JSON.stringify( {
-				id: 'Q' + match.params.id
+				id: 'Q' + id
 			} )
 		} );
 
+		const response = await fetch( url );
 
-		fetch( url ).then( r => r.json() ).then( ( body ) => {
-			this.setState( { data: body.data } );
-		} );
+		return response.json();
 	}
 
 	render() {
-		const { data } = this.state;
+		const { data } = this.props;
 
 		let title;
 		let image;
@@ -140,10 +131,10 @@ class Item extends React.Component {
 
 			publication = getFirstItem( data, 'publication' );
 			if ( publication ) {
-				publication = moment.utc( publication.value.substring( 1 ), moment.ISO_8601 );
-				year = publication.format( 'YYYY' );
+				publication = DateTime.fromISO( publication.value.substring( 1 ) );
+				year = publication.year;
 				year = `(${year})`;
-				release = publication.format( 'LL' );
+				release = publication.toLocaleString( { month: 'long', day: 'numeric', year: 'numeric' } );
 			}
 
 			mpaa = getFirstItem( data, 'mpaa' );
@@ -153,9 +144,9 @@ class Item extends React.Component {
 
 			duration = getFirstItem( data, 'duration' );
 			if ( duration ) {
-				duration = moment.duration( parseInt( duration.value ), 'minutes' );
-				if ( duration.hours() ) {
-					duration = `${duration.hours()}h ${duration.minutes()}min`;
+				duration = Duration.fromObject( { minutes: parseInt( duration.value ) } );
+				if ( duration.hours ) {
+					duration = `${duration.hours}h ${duration.minutes}min`;
 				} else {
 					duration = `${duration.minutes}min`;
 				}
@@ -167,7 +158,7 @@ class Item extends React.Component {
 		meta = [ mpaa, duration, genres, release ].filter( i => !!i ).join( ' | ' );
 
 		return (
-			<div>
+			<Layout>
 				<div className="row">
 					<div className="col-3">
 						<img src={image} alt={title} className="img-fluid" />
@@ -177,17 +168,13 @@ class Item extends React.Component {
 						<h6>{meta}</h6>
 					</div>
 				</div>
-			</div>
+			</Layout>
 		);
 	}
 }
 
 Item.propTypes = {
-	match: PropTypes.shape( {
-		params: PropTypes.shape( {
-			id: PropTypes.string
-		} )
-	} ).isRequired
+	data: PropTypes.object.isRequired,
 };
 
 export default Item;
