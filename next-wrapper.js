@@ -1,5 +1,4 @@
 const { parse } = require( 'url' );
-const { language } = require( 'accept' );
 
 const nextHandlerWrapper = ( app ) => {
 	const handler = app.getRequestHandler();
@@ -14,13 +13,10 @@ const defaultHandlerWrapper = app => async ( { raw: { req, res }, url } ) => {
 	return app.renderToHTML( req, res, pathname, query );
 };
 
-const pathWrapper = ( app, pathName, opts ) => async ( { raw, query, params, headers } ) => {
-	const lang = language( headers[ 'accept-language' ] ).split( '-' )[ 0 ];
-
+const pathWrapper = ( app, pathName, opts ) => async ( { raw, query, params } ) => {
 	return app.renderToHTML( raw.req, raw.res, pathName, {
 		...query,
-		...params,
-		lang
+		...params
 	}, opts );
 };
 
