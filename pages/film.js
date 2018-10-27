@@ -124,7 +124,7 @@ const Film = ( { data } ) => {
 	let release;
 	let year;
 	if ( publication ) {
-		publication = DateTime.fromISO( publication.substring( 1 ) );
+		publication = DateTime.fromISO( publication.substring( 1 ), { setZone: true } );
 		( { year } = publication );
 		year = `(${year})`;
 		release = publication.toLocaleString( { month: 'long', day: 'numeric', year: 'numeric' } );
